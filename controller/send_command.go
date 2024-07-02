@@ -15,7 +15,7 @@ func SendCommand(ctx *fiber.Ctx) error {
 	// fmt.Println(string(out))
 	return ctx.JSON(fiber.Map{
 
-		"message": string(out),
+		"python ": string(out),
 	})
 
 }
