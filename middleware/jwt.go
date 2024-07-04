@@ -35,3 +35,10 @@ func JWTMiddleware(c *fiber.Ctx) error {
 
 	return c.Next()
 }
+func CookieMiddleware(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+	if cookie != "" {
+		c.Locals("jwt", cookie)
+	}
+	return c.Next()
+}

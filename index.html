@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register and Login</title>
+   
+</head>
+<body>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#testButton {
+    margin-top: 20px;
+    width: 100%;
+}
+
+    </style>
+    <div class="container">
+        <h1>Register</h1>
+        <form id="registerForm">
+            <input type="text" id="registerUsername" placeholder="Username" required>
+            <input type="password" id="registerPassword" placeholder="Password" required>
+            <button type="submit">Register</button>
+        </form>
+
+        <h1>Login</h1>
+        <form id="loginForm">
+            <input type="text" id="loginUsername" placeholder="Username" required>
+            <input type="password" id="loginPassword" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+
+        <h1>Test Endpoint</h1>
+        <button id="testButton">Test</button>
+        <p id="testResult"></p>
+    </div>
+    <script >
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('registerUsername').value;
+    const password = document.getElementById('registerPassword').value;
+
+    const response = await fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+    });
+
+    const result = await response.json();
+    alert(result.message);
+});
+
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+        alert(result.message);
+        document.cookie = `jwt=${result.token}; path=/;`;
+    } else {
+        alert(result.error);
+    }
+});
+
+document.getElementById('testButton').addEventListener('click', async function() {
+    const response = await fetch('http://localhost:3000/test', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getCookie('jwt')}`
+        }
+    });
+
+    const result = await response.json();
+    document.getElementById('testResult').textContent = result.saka || result.error;
+});
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+    </script>
+</body>
+</html>
