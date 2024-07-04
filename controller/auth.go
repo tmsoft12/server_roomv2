@@ -3,19 +3,14 @@ package controller
 import (
 	"time"
 	"tm/config"
+	"tm/models"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func Register(c *fiber.Ctx) error {
-	user := new(User)
+	user := new(models.User)
 	if err := c.BodyParser(user); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
@@ -33,7 +28,7 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
-	user := new(User)
+	user := new(models.User)
 	if err := c.BodyParser(user); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
@@ -45,7 +40,7 @@ func Login(c *fiber.Ctx) error {
 	// Kullanıcıyı veritabanında ara
 	row := config.DB.QueryRow("SELECT id, password FROM users WHERE username = ?", user.Username)
 
-	storedUser := new(User)
+	storedUser := new(models.User)
 	err := row.Scan(&storedUser.ID, &storedUser.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid username or password"})
