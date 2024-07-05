@@ -21,5 +21,6 @@ func SetupRoutes(app *fiber.App) {
 
 	// Device
 	app.Get("/open_door", controller.OpenDoor)
+	app.Get("/movement_alert", controller.MovementAlert)
 
 }
