@@ -19,6 +19,13 @@ func CORSMiddleware() fiber.Handler {
 func JWTMiddleware(c *fiber.Ctx) error {
 	token := c.Cookies("jwt")
 	if token == "" {
+		authHeader := c.Get("Authorization")
+		if authHeader != "" && len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			token = authHeader[7:]
+		}
+	}
+
+	if token == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
 	}
 
@@ -35,6 +42,7 @@ func JWTMiddleware(c *fiber.Ctx) error {
 
 	return c.Next()
 }
+
 func CookieMiddleware(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
 	if cookie != "" {

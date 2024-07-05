@@ -20,6 +20,6 @@ func SetupRoutes(app *fiber.App) {
 	app.Post("phone/:id", controller.UpdatePhone)
 
 	// Device
-	app.Get("/tempreture", controller.Temprature)
+	app.Get("/open_door", controller.OpenDoor)
 
 }

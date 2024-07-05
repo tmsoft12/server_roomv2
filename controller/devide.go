@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Temprature(c *fiber.Ctx) error {
+func OpenDoor(c *fiber.Ctx) error {
 	cmd := exec.Command("python3", "python_scripts/t.py")
 	out, err := cmd.Output()
 	if err != nil {
@@ -14,7 +14,6 @@ func Temprature(c *fiber.Ctx) error {
 	}
 	// fmt.Println(string(out))
 	return c.JSON(fiber.Map{
-
-		"messagef": string(out),
+		"message": string(out),
 	})
 }

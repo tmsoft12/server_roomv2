@@ -7,6 +7,7 @@ import (
 	"tm/router"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 	defer config.DB.Close()
 
 	app := fiber.New()
+	app.Use(logger.New())
 	app.Use(middleware.CookieMiddleware)
 	router.SetupRoutes(app)
 
