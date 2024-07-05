@@ -80,7 +80,3 @@ func Login(c *fiber.Ctx) error {
 		"token":   t,
 	})
 }
-
-func Test(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"saka": "sa"})
-}

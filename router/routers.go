@@ -14,8 +14,12 @@ func SetupRoutes(app *fiber.App) {
 	app.Post("/register", controller.Register)
 
 	app.Use(middleware.JWTMiddleware)
-	app.Get("/test", controller.Test)
+
+	//phone
 	app.Get("/phone", controller.GetPhone)
 	app.Post("phone/:id", controller.UpdatePhone)
+
+	// Device
+	app.Get("/tempreture", controller.Temprature)
 
 }
