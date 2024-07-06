@@ -9,7 +9,7 @@ import (
 
 func SetupRoutes(app *fiber.App) {
 	app.Use(middleware.CORSMiddleware())
-
+	app.Get("/", controller.TestConnection)
 	app.Post("/login", controller.Login)
 	app.Post("/register", controller.Register)
 
@@ -17,7 +17,7 @@ func SetupRoutes(app *fiber.App) {
 
 	//phone
 	app.Get("/phone", controller.GetPhone)
-	app.Post("phone/:id", controller.UpdatePhone)
+	app.Put("/phone/:id", controller.UpdatePhone)
 
 	// Device
 	app.Get("/open_door", controller.OpenDoor)

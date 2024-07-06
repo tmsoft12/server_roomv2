@@ -6,6 +6,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func TestConnection(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"messgae": "oki",
+	})
+}
 func OpenDoor(c *fiber.Ctx) error {
 	cmd := exec.Command("python3", "python_scripts/t.py")
 	out, err := cmd.Output()

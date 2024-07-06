@@ -121,6 +121,7 @@
             if (response.ok) {
                 alert(result.message);
                 document.cookie = `jwt=${result.token}; path=/;`;
+                console.log(result)
             } else {
                 alert(result.error);
             }
