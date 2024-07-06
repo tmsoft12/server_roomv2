@@ -4,8 +4,8 @@
 
 const char* ssid = "Osman";
 const char* password = "21032020";
-const char* serverUrl = "http://192.168.100.186:3000/"; // Sunucunuzun adresi
-const char* loginUrl = "http://192.168.100.186:3000/login"; // Login endpoint
+const char* serverUrl = "http://192.168.100.191:3000/"; // Sunucunuzun adresi
+const char* loginUrl = "http://192.168.100.191:3000/login"; // Login endpoint
 
 const int doorPin = 14;
 const int pirPin = 12;
