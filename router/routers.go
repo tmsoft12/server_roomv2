@@ -30,6 +30,6 @@ func SetupRoutes(app *fiber.App, db *controller.Database) {
 
 	// WebSocket rotasını ayarla
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
-		controller.GetUsers(c, db)
+		controller.DeviceState(c, db)
 	}))
 }

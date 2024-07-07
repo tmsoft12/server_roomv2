@@ -42,7 +42,7 @@ type Database struct {
 	DB *sql.DB
 }
 
-func GetUsers(c *websocket.Conn, db *Database) {
+func DeviceState(c *websocket.Conn, db *Database) {
 	rows, err := db.DB.Query("SELECT id,door, fire,pir FROM statesensor")
 	if err != nil {
 		log.Println("failed to query users:", err)
