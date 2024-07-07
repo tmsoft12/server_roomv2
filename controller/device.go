@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"os/exec"
+	"strconv"
+	"tm/config"
 	"tm/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,27 +19,80 @@ func TestConnection(c *fiber.Ctx) error {
 }
 func OpenDoor(c *fiber.Ctx) error {
 	cmd := exec.Command("python3", "python_scripts/t.py")
-	out, err := cmd.Output()
+	_, err := cmd.Output()
 	if err != nil {
 		return err
 	}
-	// fmt.Println(string(out))
-	return c.JSON(fiber.Map{
-		"message": string(out),
-	})
-}
-func MovementAlert(c *fiber.Ctx) error {
-	cmd := exec.Command("python3", "python_scripts/t.py")
-	out, err := cmd.Output()
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return err
+		return c.Status(400).SendString("Invaild ID")
 	}
-	// fmt.Println(string(out))
-	return c.JSON(fiber.Map{
-		"message": string(out),
-	})
+	var door models.StateDev
+	if err := c.BodyParser(&door); err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
+	db := config.DB
+	_, err = db.Exec("UPDATE statesensor SET door = ? WHERE id = ?", door.Door, id)
+	if err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+	door.ID = id
+
+	return c.JSON(door)
 }
 
+func MovementAlert(c *fiber.Ctx) error {
+	cmd := exec.Command("python3", "python_scripts/t.py")
+	_, err := cmd.Output()
+	if err != nil {
+		return err
+	}
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(400).SendString("Invaild ID")
+	}
+	var pir models.StateDev
+	if err := c.BodyParser(&pir); err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
+	db := config.DB
+	_, err = db.Exec("UPDATE statesensor SET pir = ? WHERE id = ?", pir.Pir, id)
+	if err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+	pir.ID = id
+
+	return c.JSON(pir)
+}
+
+func FireAler(c *fiber.Ctx) error {
+	cmd := exec.Command("python3", "python_scripts/t.py")
+	_, err := cmd.Output()
+	if err != nil {
+		return err
+	}
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(400).SendString("Invaild ID")
+	}
+	var fire models.StateDev
+	if err := c.BodyParser(&fire); err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
+	db := config.DB
+	_, err = db.Exec("UPDATE statesensor SET fire = ? WHERE id = ?", fire.Fire, id)
+	if err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+	fire.ID = id
+
+	return c.JSON(fire)
+}
+
+// for flutter
 type Database struct {
 	DB *sql.DB
 }

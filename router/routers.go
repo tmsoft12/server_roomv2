@@ -9,26 +9,27 @@ import (
 )
 
 func SetupRoutes(app *fiber.App, db *controller.Database) {
-	// CORS middleware'ini uygula
+	// CORS middleware
 	app.Use(middleware.CORSMiddleware())
 
-	// Temel rotaları ayarla
+	// for login
 	app.Get("/", controller.TestConnection)
 	app.Post("/login", controller.Login)
 	app.Post("/register", controller.Register)
 
-	// JWT middleware'ini uygula
+	// JWT middleware
 	app.Use(middleware.JWTMiddleware)
 
-	// Telefon rotalarını ayarla
+	// for telefon
 	app.Get("/phone", controller.GetPhone)
 	app.Put("/phone/:id", controller.UpdatePhone)
 
-	// Cihaz rotalarını ayarla
-	app.Get("/open_door", controller.OpenDoor)
-	app.Get("/movement_alert", controller.MovementAlert)
+	// for device
+	app.Put("/open_door/:id", controller.OpenDoor)
+	app.Put("/movement_alert/:id", controller.MovementAlert)
+	app.Put("/fire_alrt/:id", controller.FireAler)
 
-	// WebSocket rotasını ayarla
+	// WebSocket
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
 		controller.DeviceState(c, db)
 	}))

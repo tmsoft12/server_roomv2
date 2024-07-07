@@ -30,5 +30,5 @@ func main() {
 	router.SetupRoutes(app, dbController)
 
 	// Fiber uygulamasını dinle
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":3001"))
 }
