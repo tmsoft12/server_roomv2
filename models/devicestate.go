@@ -5,4 +5,6 @@ type StateDev struct {
 	Door string `json:"door"`
 	Fire string `json:"fire"`
 	Pir  string `json:"pir"`
+	Temp string `json:"temp"`
+	Hum  string `json:"hum"`
 }

@@ -33,4 +33,5 @@ func SetupRoutes(app *fiber.App, db *controller.Database) {
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
 		controller.DeviceState(c, db)
 	}))
+
 }
