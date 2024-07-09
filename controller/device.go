@@ -20,11 +20,6 @@ func TestConnection(c *fiber.Ctx) error {
 	})
 }
 func OpenDoor(c *fiber.Ctx) error {
-	cmd := exec.Command("python_scripts/sens.sh 'mesaj' '99361570538'")
-	_, err := cmd.Output()
-	if err != nil {
-		return err
-	}
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -41,15 +36,42 @@ func OpenDoor(c *fiber.Ctx) error {
 	}
 	door.ID = id
 
+	rows, err := config.DB.Query("SELECT id, phone FROM phone")
+	if err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+	defer rows.Close()
+
+	var phones []models.Phone
+	for rows.Next() {
+		var phone models.Phone
+		if err := rows.Scan(&phone.ID, &phone.Phone); err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+		phones = append(phones, phone)
+	}
+
+	// Prepare phone numbers for command execution
+	var phoneNums []string
+	for _, p := range phones {
+		phoneNums = append(phoneNums, p.Phone)
+	}
+	phoneNumStr := strings.Join(phoneNums, ",")
+
+	// Prepare message for shell command execution
+	messageStr := door.Door // Assuming fire.Fire is the message you want to send
+	// Execute shell command
+	cmd := exec.Command("./cmd_commands/sens.sh", messageStr, phoneNumStr)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return c.Status(500).SendString(fmt.Sprintf("Error executing command: %v, output: %s", err, string(output)))
+	}
+
 	return c.JSON(door)
 }
 
 func MovementAlert(c *fiber.Ctx) error {
-	cmd := exec.Command("python3", "python_scripts/t.py")
-	_, err := cmd.Output()
-	if err != nil {
-		return err
-	}
+
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -65,7 +87,36 @@ func MovementAlert(c *fiber.Ctx) error {
 		return c.Status(500).SendString(err.Error())
 	}
 	pir.ID = id
+	rows, err := config.DB.Query("SELECT id, phone FROM phone")
+	if err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+	defer rows.Close()
 
+	var phones []models.Phone
+	for rows.Next() {
+		var phone models.Phone
+		if err := rows.Scan(&phone.ID, &phone.Phone); err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+		phones = append(phones, phone)
+	}
+
+	// Prepare phone numbers for command execution
+	var phoneNums []string
+	for _, p := range phones {
+		phoneNums = append(phoneNums, p.Phone)
+	}
+	phoneNumStr := strings.Join(phoneNums, ",")
+
+	// Prepare message for shell command execution
+	messageStr := pir.Pir // Assuming fire.Fire is the message you want to send
+	// Execute shell command
+	cmd := exec.Command("./cmd_commands/sens.sh", messageStr, phoneNumStr)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return c.Status(500).SendString(fmt.Sprintf("Error executing command: %v, output: %s", err, string(output)))
+	}
 	return c.JSON(pir)
 }
 
