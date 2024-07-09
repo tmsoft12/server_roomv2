@@ -46,12 +46,12 @@ void checkDoor() {
     int doorState = digitalRead(doorPin);
     if (doorState == LOW && !doorFlag) {
         Serial.println("Door opened");
-        sendRequest("open_door", "on");
+        sendRequest("open_door", "{\"door\":\"Server Otagyn Gapysy Acyldy\"}", "1"); // id parametresi ile çağrı
         activateAlarm();
         deactivateAlarm();
         doorFlag = true;
     } else if (doorState == HIGH && doorFlag) {
-        sendRequest("open_door", "off");
+        sendRequest("open_door", "{\"door\":\"Server Otagyn Gapysy Yapyldy\"}", "1"); // id parametresi ile çağrı
         doorFlag = false;
         Serial.println("Door closed");
     }
@@ -62,36 +62,46 @@ void checkMovement() {
     int pirPinState = digitalRead(pirPin);
     if (pirPinState == LOW && !pirFlag) {
         Serial.println("Movement detected");
-        sendRequest("movement_alert", "on");
+        sendRequest("movement_alert", "{\"movement\":\"detected\"}", "1"); // id parametresi ile çağrı
         activateAlarm();
         deactivateAlarm();
         pirFlag = true;
     } else if (pirPinState == HIGH && pirFlag) {
-        sendRequest("movement_alert", "off");
+        sendRequest("movement_alert", "{\"movement\":\"stopped\"}", "1"); // id parametresi ile çağrı
         pirFlag = false;
         Serial.println("Movement stopped");
     }
     delay(100);
 }
 
-void sendRequest(const char* endpoint, const char* state) {
+void sendRequest(const char* endpoint, const char* jsonPayload, const char* id) {
     String url = serverUrl;
     url += endpoint;
-    url += "?state=";
-    url += state;
+    url += "/";
+    url += id;
 
     WiFiClient client;
     HTTPClient http;
     http.begin(client, url);
-    http.addHeader("Authorization", "Bearer " + jwtToken); // JWT token'ı header'a ekle
+    http.addHeader("Authorization", "Bearer " + jwtToken); 
+    http.addHeader("Content-Type", "application/json");
 
-    int httpResponseCode = http.GET();
+    Serial.print("Sending PUT request to: ");
+    Serial.println(url);
+    Serial.print("Payload: ");
+    Serial.println(jsonPayload);
+
+    int httpResponseCode = http.PUT(jsonPayload);
     if (httpResponseCode > 0) {
         Serial.print("HTTP response code: ");
         Serial.println(httpResponseCode);
+        String response = http.getString();
+        Serial.println("Response: " + response);
     } else {
-        Serial.print("Error on sending GET request: ");
+        Serial.print("Error on sending PUT request: ");
         Serial.println(httpResponseCode);
+        String response = http.getString();
+        Serial.println("Response: " + response);
     }
 
     http.end();
