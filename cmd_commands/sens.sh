@@ -9,25 +9,21 @@ fi
 message="$1"
 DEST="$2"
 
-# Doğru seri portu belirleyin
-MD="/dev/ttyUSB0" # Bu portu bağlı cihazınıza göre ayarlayın
+MD="/dev/ttyUSB0"
 
-# Fonksiyon: Betiği kapat
 cleanup() {
-    echo "Interrupt signal yakalandı... Betik kapatılıyor."
-    stty -F $MD hupcl  # Seri portu kapat
+    echo "err"
+    stty -F $MD hupcl  
     exit 1
 }
 
-# Interrupt sinyalini yakala
 trap cleanup INT
 
-echo "Mesaj \"$message\" $DEST numarasına gönderiliyor."
+echo "SMS \"$message\" $DEST nomerine iberilyar."
 
-# Seri port ayarları
 if [ -e $MD ]; then
     if ! fuser -s $MD; then
-        echo "Seri port ayarlanıyor..."
+        echo "Seri port gozlenyar..."
         stty -F $MD 9600 min 100 time 2 -hupcl brkint ignpar -opost -onlcr -isig -icanon -echo
 
         # SMS gönderme işlemi
@@ -41,28 +37,29 @@ if [ -e $MD ]; then
             sleep 0.5
         } < $MD > $MD
 
-        # Modem yanıtını oku (SMS gönderme durumu)
-        echo "Modemden yanıt bekleniyor..."
+        echo "Modemden jogaba garasylyar..."
         response=$(timeout 10s cat < $MD)
-        echo "Modem yanıtı: $response"
+        echo "Modem jogaby: $response"
 
         # Başarılı olup olmadığını kontrol et
         if echo "$response" | grep -q "OK"; then
-            echo "SMS başarıyla gönderildi."
+            echo "SMS ussunlikli iberildi."
         else
-            echo "SMS gönderilemedi."
+            echo "SMS iberilmedi."
         fi
 
-        # Seri portu kapat
         stty -F $MD hupcl
+        echo -e "ATZ\r" > $MD  
+        sleep 0.5
+        echo -e "AT&F\r" > $MD 
 
-        # Betiği sonlandır
+     
         exit 0
     else
-        echo "$MD: Seri port başka bir işlem tarafından kullanılıyor."
+        echo "$MD: Seri port başka bir isde ulanylyar."
         exit 1
     fi
 else
-    echo "$MD: Seri port bulunamadı."
+    echo "$MD: Seri port tapylmady."
     exit 1
 fi
