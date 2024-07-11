@@ -11,8 +11,7 @@ const int firePin = 14;
 const int dhtPin = 12;
 
 bool fireFlag = false;
-String jwtToken; // JWT token to store
-
+String jwtToken; 
 DHT dht(dhtPin, DHT11);
 float lastTemp = 0.0;
 float lastHum = 0.0;
@@ -24,10 +23,10 @@ void setup() {
     
     connectWiFi();
 
-    // Perform login and get JWT token
+    
     if (!login("test", "123")) {
         Serial.println("Login failed!");
-        ESP.reset(); // Reset the device in case of login failure
+        ESP.reset(); 
     }
 }
 

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Eğer telefon numarası ve mesaj girilmemişse kullanıcıdan iste
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo "Kullanım: ./sens.sh \"mesaj\" \"telefon_numarası\""
     exit 1
@@ -26,7 +25,6 @@ if [ -e $MD ]; then
         echo "Seri port gozlenyar..."
         stty -F $MD 9600 min 100 time 2 -hupcl brkint ignpar -opost -onlcr -isig -icanon -echo
 
-        # SMS gönderme işlemi
         {
             sleep 0.5
             echo -e "AT+CMGF=1\r" > $MD
@@ -41,7 +39,7 @@ if [ -e $MD ]; then
         response=$(timeout 10s cat < $MD)
         echo "Modem jogaby: $response"
 
-        # Başarılı olup olmadığını kontrol et
+
         if echo "$response" | grep -q "OK"; then
             echo "SMS ussunlikli iberildi."
         else
