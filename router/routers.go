@@ -27,7 +27,8 @@ func SetupRoutes(app *fiber.App, db *controller.Database) {
 	// for device
 	app.Put("/open_door/:id", controller.OpenDoor)
 	app.Put("/movement_alert/:id", controller.MovementAlert)
-	app.Put("/fire_alrt/:id", controller.FireAler)
+	app.Put("/fire_alert/:id", controller.FireAler)
+	app.Put("/temp_hum/:id", controller.TempUpdate)
 
 	// WebSocket
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {

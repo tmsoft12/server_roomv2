@@ -1,82 +1,87 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266HTTPClient.h>
+#include <DHT.h>
 
 const char* ssid = "Osman";
 const char* password = "21032020";
-const char* serverUrl = "http://192.168.100.191:3000/"; // Sunucunuzun adresi
-const char* loginUrl = "http://192.168.100.191:3000/login"; // Login endpoint
+const char* serverUrl = "http://192.168.100.191:3000/";
+const char* loginUrl = "http://192.168.100.191:3000/login";
+const int firePin = 14;
+const int dhtPin = 12;
 
-const int doorPin = 14;
-const int pirPin = 12;
-const int buzzerPin = 2;
+bool fireFlag = false;
+String jwtToken; // JWT token to store
 
-bool doorFlag = false;
-bool pirFlag = false;
-
-String jwtToken; // JWT token'ı saklamak için
+DHT dht(dhtPin, DHT11);
+float lastTemp = 0.0;
+float lastHum = 0.0;
 
 void setup() {
     Serial.begin(115200);
+    pinMode(firePin, INPUT);
+    dht.begin();
+    
+    connectWiFi();
 
-    pinMode(doorPin, INPUT);
-    pinMode(buzzerPin, OUTPUT);
-    pinMode(pirPin, INPUT);
+    // Perform login and get JWT token
+    if (!login("test", "123")) {
+        Serial.println("Login failed!");
+        ESP.reset(); // Reset the device in case of login failure
+    }
+}
 
+void loop() {
+    checkFire();
+    checkTempHum();
+    delay(100);
+}
+
+void connectWiFi() {
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
         Serial.println("Connecting to WiFi...");
         delay(1000);
     }
     Serial.println("Connected to WiFi");
+}
 
-    // Login olup JWT token'ını al
-    if (!login("test", "123")) {
-        Serial.println("Login failed!");
-        // Hata durumunda cihazı resetleyerek veya başka bir kurtarma mekanizması kullanarak yeniden denemek isteyebilirsiniz.
-        ESP.reset(); // Cihazı resetleme örneği
+void checkFire() {
+    int fireState = digitalRead(firePin);
+    if (fireState == HIGH && !fireFlag) {
+        Serial.println("Fire detected");
+        if (sendRequest("fire_alert", "{\"fire\":\"Fire detected\"}", "1")) {
+            fireFlag = true;
+        }
+    } else if (fireState == LOW && fireFlag) {
+        Serial.println("Fire extinguished");
+        if (sendRequest("fire_alert", "{\"fire\":\"Fire extinguished\"}", "1")) {
+            fireFlag = false;
+        }
     }
 }
 
-void loop() {
-    checkDoor();
-    checkMovement();
-}
+void checkTempHum() {
+    float newTemp = dht.readTemperature();
+    float newHum = dht.readHumidity();
 
-void checkDoor() {
-    int doorState = digitalRead(doorPin);
-    if (doorState == HIGH && !doorFlag) {
-        Serial.println("Door opened");
-        if (sendRequest("open_door", "{\"door\":\"Server Otagyn Gapysy Acyldy\"}", "1")) {
-            activateAlarm();
-            deactivateAlarm();
-            doorFlag = true;
-        }
-    } else if (doorState == LOW && doorFlag) {
-        if (sendRequest("open_door", "{\"door\":\"Server Otagyn Gapysy Yapyldy\"}", "1")) {
-            doorFlag = false;
-            Serial.println("Door closed");
+    if (isnan(newTemp) || isnan(newHum)) {
+        Serial.println("Failed to read from DHT sensor!");
+        return;
+    }
+
+    if (newTemp != lastTemp || newHum != lastHum) {
+        Serial.print("Temperature: ");
+        Serial.print(newTemp);
+        Serial.print(" Humidity: ");
+        Serial.println(newHum);
+
+        String jsonPayload = "{\"temp\":\"" + String(newTemp) + "\",\"hum\":\"" + String(newHum) + "\"}";
+        if (sendRequest("temp_hum", jsonPayload.c_str(), "1")) {
+            lastTemp = newTemp;
+            lastHum = newHum;
         }
     }
-    delay(100);
-}
-
-void checkMovement() {
-    int pirPinState = digitalRead(pirPin);
-    if (pirPinState == LOW && !pirFlag) {
-        Serial.println("Movement detected");
-        if (sendRequest("movement_alert", "{\"pir\":\"Hereket Bar\"}", "1")) {
-            activateAlarm();
-            deactivateAlarm();
-            pirFlag = true;
-        }
-    } else if (pirPinState == HIGH && pirFlag) {
-        if (sendRequest("movement_alert", "{\"pir\":\"Hereket yok\"}", "1")) {
-            pirFlag = false;
-            Serial.println("Movement stopped");
-        }
-    }
-    delay(100);
 }
 
 bool sendRequest(const char* endpoint, const char* jsonPayload, const char* id) {
@@ -87,8 +92,9 @@ bool sendRequest(const char* endpoint, const char* jsonPayload, const char* id) 
 
     WiFiClient client;
     HTTPClient http;
+
     http.begin(client, url);
-    http.addHeader("Authorization", "Bearer " + jwtToken); 
+    http.addHeader("Authorization", "Bearer " + jwtToken);
     http.addHeader("Content-Type", "application/json");
 
     Serial.print("Sending PUT request to: ");
@@ -97,6 +103,7 @@ bool sendRequest(const char* endpoint, const char* jsonPayload, const char* id) 
     Serial.println(jsonPayload);
 
     int httpResponseCode = http.PUT(jsonPayload);
+
     if (httpResponseCode > 0) {
         Serial.print("HTTP response code: ");
         Serial.println(httpResponseCode);
@@ -112,14 +119,6 @@ bool sendRequest(const char* endpoint, const char* jsonPayload, const char* id) 
         http.end();
         return false;
     }
-}
-
-void activateAlarm() {
-    tone(buzzerPin, 1000);
-}
-
-void deactivateAlarm() {
-    noTone(buzzerPin);
 }
 
 bool login(const char* username, const char* password) {
@@ -139,14 +138,15 @@ bool login(const char* username, const char* password) {
 
     if (httpResponseCode > 0) {
         String response = http.getString();
+        Serial.print("HTTP response code: ");
         Serial.println(httpResponseCode);
-        Serial.println(response);
-        
-        // Yanıttan JWT token'ı çıkarma
+        Serial.println("Response: " + response);
+
+        // Extract JWT token from response
         int tokenIndex = response.indexOf("\"token\":\"") + 9;
         int tokenEndIndex = response.indexOf("\"", tokenIndex);
         jwtToken = response.substring(tokenIndex, tokenEndIndex);
-        
+
         Serial.println("JWT Token: " + jwtToken);
         http.end();
         return true;

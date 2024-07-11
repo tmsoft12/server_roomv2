@@ -170,8 +170,26 @@ func FireAler(c *fiber.Ctx) error {
 		return c.Status(500).SendString(fmt.Sprintf("Error executing command: %v, output: %s", err, string(output)))
 	}
 
-	// Return JSON response with fire object
 	return c.JSON(fire)
+}
+
+func TempUpdate(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(400).SendString("Invalid ID")
+	}
+	var temp models.StateDev
+	if err := c.BodyParser(&temp); err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
+
+	_, err = config.DB.Exec("UPDATE statesensor SET temp = ?, hum = ? WHERE id = ?", temp.Temp, temp.Hum, id)
+	if err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+
+	return c.SendStatus(200)
 }
 
 // for flutter
