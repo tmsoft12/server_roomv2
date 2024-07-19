@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"tm/config"
 	"tm/controller"
@@ -14,7 +15,12 @@ import (
 func main() {
 
 	config.InitDatabase()
-	defer config.DB.Close()
+	defer func(DB *sql.DB) {
+		err := DB.Close()
+		if err != nil {
+
+		}
+	}(config.DB)
 
 	app := fiber.New()
 

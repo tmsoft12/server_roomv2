@@ -1,12 +1,12 @@
-#include <ESP8266WiFi.h>
+  #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266HTTPClient.h>
 #include <DHT.h>
 
-const char* ssid = "Osman";
-const char* password = "21032020";
-const char* serverUrl = "http://192.168.100.191:3000/";
-const char* loginUrl = "http://192.168.100.191:3000/login";
+const char* ssid = "server";
+const char* password = "reset12345";
+const char* serverUrl = "http://192.168.12.1:3000/";
+const char* loginUrl = "http://192.168.12.1:3000/login";
 const int firePin = 14;
 const int dhtPin = 12;
 
@@ -47,14 +47,14 @@ void connectWiFi() {
 
 void checkFire() {
     int fireState = digitalRead(firePin);
-    if (fireState == HIGH && !fireFlag) {
+    if (fireState == LOW && !fireFlag) {
         Serial.println("Fire detected");
-        if (sendRequest("fire_alert", "{\"fire\":\"Fire detected\"}", "1")) {
+        if (sendRequest("fire_alert", "{\"fire\":\"Yangyn Doredi\"}", "1")) {
             fireFlag = true;
         }
-    } else if (fireState == LOW && fireFlag) {
+    } else if (fireState == HIGH && fireFlag) {
         Serial.println("Fire extinguished");
-        if (sendRequest("fire_alert", "{\"fire\":\"Fire extinguished\"}", "1")) {
+        if (sendRequest("fire_alert", "{\"fire\":\"Yangyn Yok\"}", "1")) {
             fireFlag = false;
         }
     }

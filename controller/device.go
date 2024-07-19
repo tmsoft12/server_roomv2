@@ -198,7 +198,7 @@ type Database struct {
 }
 
 func DeviceState(c *websocket.Conn, db *Database) {
-	rows, err := db.DB.Query("SELECT id,door, fire,pir, temp,hum FROM statesensor")
+	rows, err := db.DB.Query("SELECT id,door, fire ,pir, temp,hum FROM statesensor")
 	if err != nil {
 		return
 	}
